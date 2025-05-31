@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hexagon Math Puzzle</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 40px;
+            align-items: flex-start;
+            position: relative;
+            max-width: 95vw;
+            max-height: 95vh;
+            overflow: hidden;
+        }
+
+        .left-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .hexagon-pyramid {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .hex-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .hexagon-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .hexagon-letter {
+            font-size: 12px;
+            font-weight: bold;
+            color: #374151;
+        }
+
+        .hexagon {
+            width: 90px;
+            height: 90px;
+            background: #3b82f6;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 28px;
+            text-align: center;
+            clip-path: polygon(25% 6.7%, 75% 6.7%, 100% 50%, 75% 93.3%, 25% 93.3%, 0% 50%);
+        }
+
+        .hexagon:hover {
+            transform: scale(1.1);
+            background: #2563eb;
+        }
+
+        .hexagon.clicked {
+            background: #10b981;
+            animation: pulse 0.3s ease;
+        }
+
+        .hexagon.used {
+            background: #9ca3af;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .hexagon.used:hover {
+            transform: none;
+            background: #9ca3af;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .input-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .input-squares {
+            display: flex;
+            gap: 15px;
+        }
+
+        .input-square {
+            width: 70px;
+            height: 70px;
+            border: 3px solid #ddd;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            background: white;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+
+        .input-square.filled {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .equals {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .output-square {
+            width: 70px;
+            height: 70px;
+            border: 3px solid #ef4444;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+            background: #fef2f2;
+            color: #ef4444;
+            position: relative;
+        }
+
+        .right-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .target-container {
+            text-align: center;
+        }
+
+        .target-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: 
+                radial-gradient(circle at center, 
+                    #ef4444 0%, #ef4444 33.33%, 
+                    white 33.33%, white 66.66%, 
+                    #ef4444 66.66%, #ef4444 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: black;
+            font-size: 30px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .target-label {
+            font-size: 14px;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .solutions-found {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .solution-check {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #10b981;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            animation: checkmark 0.5s ease;
+        }
+
+        @keyframes checkmark {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .fireworks {
+            position: absolute;
+            pointer-events: none;
+        }
+
+        .firework {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            animation: firework 1s ease-out forwards;
+        }
+
+        @keyframes firework {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(20);
+                opacity: 0;
+            }
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+
+        .modal button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .modal button:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+        }
+
+        .reset-button {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .reset-button:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+
+        .solutions-counter {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .solutions-found-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .solutions-found-box {
+            width: 70px;
+            height: 40px;
+            background: transparent;
+            border: 3px solid #10b981;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #10b981;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .solutions-found-label {
+            color: #374151;
+            font-size: 10px;
+            text-align: center;
+            max-width: 80px;
+            line-height: 1.2;
+        }
+
+        .solutions-box {
+            width: 70px;
+            height: 40px;
+            background: #374151;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .solutions-box:hover {
+            background: #4b5563;
+            transform: translateY(-2px);
+        }
+
+        .solutions-label {
+            color: #374151;
+            font-size: 10px;
+            text-align: center;
+            max-width: 80px;
+            line-height: 1.2;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="left-section">
+            <div class="hexagon-pyramid" id="hexagonPyramid">
+                <!-- Hexagons will be generated by JavaScript -->
+            </div>
+            
+            <div class="input-section">
+                <div class="input-squares">
+                    <div class="input-square" id="input1"></div>
+                    <div class="input-square" id="input2"></div>
+                    <div class="input-square" id="input3"></div>
+                </div>
+                <div class="equals">=</div>
+                <div class="output-square" id="output"></div>
+            </div>
+            
+            <button class="reset-button" onclick="game.resetGame()">New Game</button>
+        </div>
+
+        <div class="right-section">
+            <div class="target-container">
+                <div class="target-circle" id="targetNumber"></div>
+                <div class="target-label">Target Number</div>
+            </div>
+            
+            <div class="solutions-found" id="solutionsFound">
+                <!-- This section now removed, replaced by counter box -->
+            </div>
+        </div>
+
+        <div class="solutions-counter">
+            <div class="solutions-found-container">
+                <div class="solutions-found-label">Number of solutions found</div>
+                <div class="solutions-found-box" id="solutionsFoundBox">0</div>
+            </div>
+            <div class="solutions-box" id="solutionsBox" onclick="game.toggleSolutionsDisplay()"></div>
+            <div class="solutions-label">Number of remaining solutions, click to reveal</div>
+        </div>
+    </div>
+
+    <div class="modal" id="gameCompleteModal">
+        <div class="modal-content">
+            <h2>🎉 All Solutions Found!</h2>
+            <p>Congratulations! You've found all possible solutions!</p>
+            <button onclick="game.resetGame(); document.getElementById('gameCompleteModal').style.display = 'none';">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        class HexagonMathGame {
+            constructor() {
+                this.hexagons = [];
+                this.targetNumber = 0;
+                this.inputValues = [];
+                this.currentInputIndex = 0;
+                this.foundSolutions = new Set();
+                this.allPossibleSolutions = new Set();
+                this.usedHexagonIndices = new Set();
+                this.solutionsVisible = false;
+                this.operators = ['+', '-', '×', '÷'];
+                this.init();
+            }
+
+            init() {
+                this.generatePuzzleWithSolution();
+                this.renderHexagons();
+                this.updateTargetDisplay();
+            }
+
+            generatePuzzleWithSolution() {
+                let attempts = 0;
+                const maxAttempts = 100;
+                
+                do {
+                    this.generateHexagons();
+                    this.generateTargetNumber();
+                    this.calculateAllPossibleSolutions();
+                    attempts++;
+                    
+                    // If we can't find a solvable puzzle after many attempts,
+                    // force create one by adjusting the target number
+                    if (attempts >= maxAttempts) {
+                        this.forceCreateSolution();
+                        break;
+                    }
+                } while (this.allPossibleSolutions.size === 0);
+                
+                console.log(`Generated puzzle with ${this.allPossibleSolutions.size} solutions in ${attempts} attempts`);
+            }
+
+            forceCreateSolution() {
+                // If we can't generate a natural solution, create one by:
+                // 1. Taking the first 3 hexagons
+                // 2. Calculating what their result would be
+                // 3. Setting that as the target number
+                
+                if (this.hexagons.length >= 3) {
+                    const result = this.calculateEquation([
+                        this.hexagons[0],
+                        this.hexagons[1], 
+                        this.hexagons[2]
+                    ]);
+                    
+                    // Make sure the result is within our target range (1-20)
+                    if (result >= 1 && result <= 20 && Number.isInteger(result)) {
+                        this.targetNumber = result;
+                    } else {
+                        // If the result is out of range, try different combinations
+                        for (let i = 0; i < this.hexagons.length - 2; i++) {
+                            for (let j = i + 1; j < this.hexagons.length - 1; j++) {
+                                for (let k = j + 1; k < this.hexagons.length; k++) {
+                                    const testResult = this.calculateEquation([
+                                        this.hexagons[i],
+                                        this.hexagons[j],
+                                        this.hexagons[k]
+                                    ]);
+                                    
+                                    if (testResult >= 1 && testResult <= 20 && Number.isInteger(testResult)) {
+                                        this.targetNumber = testResult;
+                                        this.calculateAllPossibleSolutions();
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // If still no good result, just use a simple addition
+                        this.targetNumber = this.hexagons[0].number + this.hexagons[1].number;
+                        if (this.targetNumber > 20) {
+                            this.targetNumber = Math.min(this.hexagons[0].number, this.hexagons[1].number);
+                        }
+                    }
+                    
+                    this.calculateAllPossibleSolutions();
+                }
+            }
+
+            generateHexagons() {
+                this.hexagons = [];
+                
+                // Ensure we have at least one of each operator
+                const requiredOperators = ['+', '-', '×', '÷'];
+                const operators = [...requiredOperators];
+                
+                // Fill remaining slots: 5 add/subtract total, 5 multiply/divide total
+                // We already have 1 of each, so need 1 more +/-, 1 more ×/÷, then 4 more +/-, 4 more ×/÷
+                operators.push('+', '-'); // Now we have 2 of each
+                operators.push('×', '÷'); // Now we have 2 of each
+                
+                // Add 3 more +/- and 3 more ×/÷ to reach 5 each
+                for (let i = 0; i < 3; i++) {
+                    operators.push(Math.random() < 0.5 ? '+' : '-');
+                    operators.push(Math.random() < 0.5 ? '×' : '÷');
+                }
+                
+                // Shuffle operators
+                for (let i = operators.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [operators[i], operators[j]] = [operators[j], operators[i]];
+                }
+                
+                // Generate numbers: 3-4 double digit, rest single digit
+                const doubleDigitCount = Math.random() < 0.5 ? 3 : 4;
+                const numbers = [];
+                
+                // Add double digit numbers (10-20)
+                for (let i = 0; i < doubleDigitCount; i++) {
+                    numbers.push(Math.floor(Math.random() * 11) + 10); // 10-20
+                }
+                
+                // Add single digit numbers (1-9)
+                for (let i = doubleDigitCount; i < 10; i++) {
+                    numbers.push(Math.floor(Math.random() * 9) + 1); // 1-9
+                }
+                
+                // Shuffle numbers
+                for (let i = numbers.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
+                }
+                
+                // Create hexagons
+                for (let i = 0; i < 10; i++) {
+                    this.hexagons.push({
+                        id: i,
+                        operator: operators[i],
+                        number: numbers[i],
+                        display: `${operators[i]}${numbers[i]}`
+                    });
+                }
+            }
+
+            generateTargetNumber() {
+                this.targetNumber = Math.floor(Math.random() * 20) + 1;
+            }
+
+            calculateAllPossibleSolutions() {
+                this.allPossibleSolutions.clear();
+                
+                // Try all combinations of 3 different hexagons (no repeats)
+                for (let i = 0; i < this.hexagons.length; i++) {
+                    for (let j = 0; j < this.hexagons.length; j++) {
+                        for (let k = 0; k < this.hexagons.length; k++) {
+                            if (i !== j && j !== k && i !== k) { // All different indices
+                                const result = this.calculateEquation([
+                                    this.hexagons[i],
+                                    this.hexagons[j],
+                                    this.hexagons[k]
+                                ]);
+                                
+                                if (result === this.targetNumber) {
+                                    const solution = `${i}-${j}-${k}`;
+                                    this.allPossibleSolutions.add(solution);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            calculateEquation(hexagons) {
+                if (hexagons.length !== 3) return null;
+                
+                // First hexagon's operator is ignored, only its number is used
+                let result = hexagons[0].number;
+                
+                // Apply second hexagon's operation
+                result = this.applyOperation(result, hexagons[1].operator, hexagons[1].number);
+                
+                // Apply third hexagon's operation
+                result = this.applyOperation(result, hexagons[2].operator, hexagons[2].number);
+                
+                return Math.round(result * 100) / 100; // Round to avoid floating point issues
+            }
+
+            applyOperation(a, operator, b) {
+                switch (operator) {
+                    case '+': return a + b;
+                    case '-': return a - b;
+                    case '×': return a * b;
+                    case '÷': return b !== 0 ? a / b : 0;
+                    default: return a;
+                }
+            }
+
+            renderHexagons() {
+                const pyramid = document.getElementById('hexagonPyramid');
+                pyramid.innerHTML = '';
+                
+                // Create pyramid structure: 4, 3, 2, 1 hexagons per row
+                const rows = [4, 3, 2, 1];
+                let hexIndex = 0;
+                const letters = 'ABCDEFGHIJ';
+                
+                rows.forEach(rowCount => {
+                    const row = document.createElement('div');
+                    row.className = 'hex-row';
+                    
+                    for (let i = 0; i < rowCount; i++) {
+                        if (hexIndex < this.hexagons.length) {
+                            // Create container for hexagon and letter
+                            const hexContainer = document.createElement('div');
+                            hexContainer.className = 'hexagon-container';
+                            
+                            // Create hexagon
+                            const hex = document.createElement('div');
+                            hex.className = 'hexagon';
+                            hex.textContent = this.hexagons[hexIndex].display;
+                            
+                            // Capture the current hexIndex value in the closure
+                            const currentIndex = hexIndex;
+                            hex.onclick = () => this.clickHexagon(currentIndex);
+                            
+                            // Create letter label
+                            const letter = document.createElement('div');
+                            letter.className = 'hexagon-letter';
+                            letter.textContent = letters[hexIndex];
+                            
+                            hexContainer.appendChild(hex);
+                            hexContainer.appendChild(letter);
+                            row.appendChild(hexContainer);
+                            hexIndex++;
+                        }
+                    }
+                    
+                    pyramid.appendChild(row);
+                });
+            }
+
+            clickHexagon(index) {
+                console.log('Clicked hexagon index:', index);
+                console.log('Used hexagons:', Array.from(this.usedHexagonIndices));
+                console.log('Current input index:', this.currentInputIndex);
+                
+                // Check if we can still add inputs and if this hexagon hasn't been used
+                if (this.currentInputIndex >= 3) {
+                    console.log('All input squares are filled');
+                    return;
+                }
+                
+                if (this.usedHexagonIndices.has(index)) {
+                    console.log('Hexagon already used in this solution');
+                    return;
+                }
+                
+                const hexagon = this.hexagons[index];
+                if (!hexagon) {
+                    console.error('Hexagon not found at index:', index);
+                    return;
+                }
+                
+                this.inputValues[this.currentInputIndex] = {
+                    hexagonIndex: index,
+                    ...hexagon
+                };
+                
+                // Mark this hexagon as used for this solution
+                this.usedHexagonIndices.add(index);
+                
+                // Update input square display - hide operator for first input
+                const inputSquare = document.getElementById(`input${this.currentInputIndex + 1}`);
+                if (this.currentInputIndex === 0) {
+                    // First input: show only the number, not the operator
+                    inputSquare.textContent = hexagon.number;
+                } else {
+                    // Other inputs: show operator and number
+                    inputSquare.textContent = hexagon.display;
+                }
+                inputSquare.classList.add('filled');
+                
+                // Add visual feedback to clicked hexagon and mark as used
+                this.updateHexagonAppearance();
+                
+                this.currentInputIndex++;
+                
+                // If all inputs are filled, calculate result
+                if (this.currentInputIndex === 3) {
+                    this.calculateResult();
+                }
+            }
+
+            updateHexagonAppearance() {
+                const hexContainers = document.querySelectorAll('.hexagon-container');
+                hexContainers.forEach((container, index) => {
+                    const hex = container.querySelector('.hexagon');
+                    if (this.usedHexagonIndices.has(index)) {
+                        hex.classList.add('used');
+                    } else {
+                        hex.classList.remove('used');
+                    }
+                });
+            }
+
+            calculateResult() {
+                const result = this.calculateEquation(this.inputValues);
+                const outputElement = document.getElementById('output');
+                outputElement.textContent = result;
+                
+                // Check if result matches target
+                if (result === this.targetNumber) {
+                    this.handleCorrectSolution();
+                }
+                
+                // Auto-reset after a short delay
+                setTimeout(() => {
+                    this.resetInputs();
+                }, result === this.targetNumber ? 2000 : 1500);
+            }
+
+            handleCorrectSolution() {
+                // Create solution identifier
+                const solutionId = this.inputValues.map(v => v.hexagonIndex).join('-');
+                
+                // Only add if it's a new solution
+                if (!this.foundSolutions.has(solutionId)) {
+                    this.foundSolutions.add(solutionId);
+                    
+                    // Create fireworks effect
+                    this.createFireworks();
+                    
+                    // Add checkmark after fireworks
+                    setTimeout(() => {
+                        this.addSolutionCheckmark();
+                        
+                        // Check if all solutions found
+                        if (this.foundSolutions.size === this.allPossibleSolutions.size) {
+                            setTimeout(() => {
+                                document.getElementById('gameCompleteModal').style.display = 'flex';
+                            }, 500);
+                        }
+                    }, 1000);
+                }
+            }
+
+            createFireworks() {
+                const outputElement = document.getElementById('output');
+                const rect = outputElement.getBoundingClientRect();
+                
+                for (let i = 0; i < 12; i++) {
+                    setTimeout(() => {
+                        const firework = document.createElement('div');
+                        firework.className = 'firework';
+                        firework.style.background = `hsl(${Math.random() * 360}, 70%, 60%)`;
+                        firework.style.left = `${rect.left + rect.width/2}px`;
+                        firework.style.top = `${rect.top + rect.height/2}px`;
+                        firework.style.transform = `translate(${(Math.random() - 0.5) * 100}px, ${(Math.random() - 0.5) * 100}px)`;
+                        
+                        document.body.appendChild(firework);
+                        
+                        setTimeout(() => {
+                            firework.remove();
+                        }, 1000);
+                    }, i * 50);
+                }
+            }
+
+            addSolutionCheckmark() {
+                const container = document.getElementById('solutionsFound');
+                const checkmark = document.createElement('div');
+                checkmark.className = 'solution-check';
+                checkmark.textContent = '✓';
+                container.appendChild(checkmark);
+            }
+
+            resetInputs() {
+                this.inputValues = [];
+                this.currentInputIndex = 0;
+                this.usedHexagonIndices.clear();
+                
+                // Clear input squares
+                for (let i = 1; i <= 3; i++) {
+                    const square = document.getElementById(`input${i}`);
+                    square.textContent = '';
+                    square.classList.remove('filled');
+                }
+                
+                // Clear output
+                document.getElementById('output').textContent = '';
+                
+                // Reset hexagon appearances - remove all used/clicked classes
+                const hexElements = document.querySelectorAll('.hexagon');
+                hexElements.forEach(hex => {
+                    hex.classList.remove('used', 'clicked');
+                });
+            }
+
+            updateTargetDisplay() {
+                document.getElementById('targetNumber').textContent = this.targetNumber;
+            }
+
+            resetGame() {
+                this.foundSolutions.clear();
+                this.solutionsVisible = false;
+                this.generatePuzzleWithSolution();
+                this.renderHexagons();
+                this.updateTargetDisplay();
+                this.resetInputs();
+                this.updateSolutionsDisplay();
+                this.updateSolutionsFoundDisplay();
+            }
+
+            toggleSolutionsDisplay() {
+                this.solutionsVisible = !this.solutionsVisible;
+                this.updateSolutionsDisplay();
+            }
+
+            updateSolutionsDisplay() {
+                const solutionsBox = document.getElementById('solutionsBox');
+                if (this.solutionsVisible) {
+                    solutionsBox.textContent = this.allPossibleSolutions.size;
+                } else {
+                    solutionsBox.textContent = '';
+                }
+            }
+        }
+
+        // Initialize the game
+        const game = new HexagonMathGame();
+    </script>
+</body>
+</html>
