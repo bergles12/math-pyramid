@@ -449,6 +449,8 @@
                 this.generatePuzzleWithSolution();
                 this.renderHexagons();
                 this.updateTargetDisplay();
+                this.updateSolutionsFoundDisplay();
+                this.updateSolutionsDisplay();
             }
 
             generatePuzzleWithSolution() {
@@ -759,14 +761,15 @@
                 if (!this.foundSolutions.has(solutionId)) {
                     this.foundSolutions.add(solutionId);
                     
+                    // Update the solutions counter displays
+                    this.updateSolutionsFoundDisplay();
+                    this.updateSolutionsDisplay();
+                    
                     // Create fireworks effect
                     this.createFireworks();
                     
-                    // Add checkmark after fireworks
+                    // Check if all solutions found
                     setTimeout(() => {
-                        this.addSolutionCheckmark();
-                        
-                        // Check if all solutions found
                         if (this.foundSolutions.size === this.allPossibleSolutions.size) {
                             setTimeout(() => {
                                 document.getElementById('gameCompleteModal').style.display = 'flex';
@@ -796,14 +799,6 @@
                         }, 1000);
                     }, i * 50);
                 }
-            }
-
-            addSolutionCheckmark() {
-                const container = document.getElementById('solutionsFound');
-                const checkmark = document.createElement('div');
-                checkmark.className = 'solution-check';
-                checkmark.textContent = '✓';
-                container.appendChild(checkmark);
             }
 
             resetInputs() {
@@ -850,11 +845,17 @@
 
             updateSolutionsDisplay() {
                 const solutionsBox = document.getElementById('solutionsBox');
+                const remainingSolutions = this.allPossibleSolutions.size - this.foundSolutions.size;
                 if (this.solutionsVisible) {
-                    solutionsBox.textContent = this.allPossibleSolutions.size;
+                    solutionsBox.textContent = remainingSolutions;
                 } else {
                     solutionsBox.textContent = '';
                 }
+            }
+
+            updateSolutionsFoundDisplay() {
+                const solutionsFoundBox = document.getElementById('solutionsFoundBox');
+                solutionsFoundBox.textContent = this.foundSolutions.size;
             }
         }
 
